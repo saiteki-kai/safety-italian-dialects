@@ -5,5 +5,6 @@ description = "Translation of benchmarks into Italian dialects"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dotenv>=0.9.9",
     "googletrans-python>=0.2.0",
 ]
