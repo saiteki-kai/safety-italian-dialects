@@ -1,0 +1,53 @@
+[project]
+name = "italian-dialects-safety"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = ["datasets>=4.7.0"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["benchmarks"]
+
+[dependency-groups]
+dev = ["pre-commit>=4.5.1", "ruff>=0.15.6"]
+
+
+[tool.ruff]
+line-length = 120
+fix = true
+show-fixes = true
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+lines-between-types = 1
+combine-as-imports = true
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "C90",
+    "UP",
+    "S",
+    "B",
+    "A",
+    "COM",
+    "C4",
+    "T10",
+    "RET",
+    "ARG",
+    "PIE",
+    "PGH",
+    "TRY",
+    "PLR",
+    "SIM",
+    "PTH",
+    "NPY",
+    "RUF",
+    "SLF001",
+]
+ignore = ["TRY003", "COM812", "PLR0915"]
