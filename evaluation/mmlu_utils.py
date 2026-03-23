@@ -480,12 +480,12 @@ ANSWER_PREFIXES: dict[str, str] = {
 
 SUBJECT_SYSTEM_TEMPLATES: dict[str, str] = {
     "English": "The following are multiple choice questions (with answers) about {subject}.",
-    "Italian": "Di seguito sono riportate domande a risposta multipla (con risposte) sull'argomento {subject}.",
-    "Friulian": "Di seguit a son domandis a sielte multiple (cun ​​rispuestis) su {subject}.",
-    "Venetian": "Łe seventi łe xe domande a risposta multipla (co risposte) su {subject}.",
-    "Lombard": "Di seguit sun dumandi a scernida multipla (cun ​​rispost) sü {subject}.",
+    "Italian": "Di seguito sono riportate domande a risposta multipla (con risposte) su {subject}.",
+    "Friulian": "Di seguit a son domandis a sielte multiple (cun rispuestis) su {subject}.",
+    "Venetian": "Qua soto ghe xe domande a risposta (co risposte) su {subject}.",
+    "Lombard": "Di seguit sun dumandi a scernida multipla (cun rispost) sü {subject}.",
     "Sicilian": "Di seguitu ci sunnu dumanni a scelta multipla (cû risposti) supra {subject}.",
-    "Ligurian": "A-o de là gh'é de domande à çernia multipla (con de respòste) in sce {subject}.",
+    "Ligurian": "De sotta gh'é de domande à çernia multipla (con de respòste) in sce {subject}.",
 }
 
 
@@ -496,7 +496,7 @@ JSON_INSTRUCTION_TEMPLATES: dict[str, str] = {
     "Venetian": 'Ogni domanda ła ga quatro opsion (A, B, C, D). Rispondi soło co un ojeto JSON in sto formato esato: {"risposta": "ŁETARA"}, indove ła ŁETARA ła xe ła sielta giusta da A, B, C o D. No métar spiegasión o testo adisionałe.',  # noqa: E501
     "Lombard": 'Ogni dumanda g\'ha quater upziun (A, B, C, D). Respund sultant cunt un uget JSON en chestu furmat esatt: {"rispòsta": "LETRA"}, induè la LETRA l\'è la scernida giüsta intra A, B, C o D. Includi no spiegaziun o test giontif.',  # noqa: E501
     "Sicilian": 'Ogni dumanna havi quattru pussibbilità (A, B, C, D). Rispunni sulu cu n\'uggettu JSON nna stu furmatu esattu: {"risposta": "LITTRA"}, unni la LITTRA è la scelta giusta di A, B, C o D. Nun nchiùdiri spiegazzioni o testu aggiuntivu.',  # noqa: E501
-    "Ligurian": 'Ògni domanda a l\'à quattro poscibilitæ (A, B, C, D). Responde solo con un oggetto JSON inte sto formato esatto: {"responsa": "LETTIA"}, donde a LETTIA a l\'é a corretta çernia tra A, B, C ò D. No comprende nisciuña spiegaçion ò testo in ciù.',  # noqa: E501
+    "Ligurian": 'Ògni domanda a l\'à quattro poscibilitæ (A, B, C, D). Responde solo con un oggetto JSON inte sto formato esatto: {"responsa": "LETTIA"}, donde a LETTIA a l\'é a corretta çernia tra A, B, C ò D. No comprende de spiegaçioin ò di testi in ciù.',  # noqa: E501
 }
 
 
