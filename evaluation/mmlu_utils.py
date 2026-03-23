@@ -428,17 +428,23 @@ SUBJECT_TRANSLATIONS: dict[str, dict[str, str]] = {
 
 
 def get_translated_subject(subject: str, lang: str) -> str:
-    return SUBJECT_TRANSLATIONS.get(lang, {}).get(subject, subject)
+    if lang not in SUBJECT_TRANSLATIONS:
+        raise ValueError(f"Unsupported language: {lang}")
+
+    if subject not in SUBJECT_TRANSLATIONS[lang]:
+        raise ValueError(f"Unsupported subject: {subject}")
+
+    return SUBJECT_TRANSLATIONS[lang][subject].lower()
 
 
 ANSWER_SCHEMAS: dict[str, str] = {
-    "English": '{"answer": "<letter>"}',
-    "Italian": '{"risposta": "<lettera>"}',
-    "Friulian": '{"rispueste": "<letare>"}',
-    "Venetian": '{"risposta": "<letera>"}',
-    "Lombard": '{"risposta": "<letra>"}',
-    "Sicilian": '{"risposta": "<littra>"}',
-    "Ligurian": '{"responsa": "<lettia>"}',
+    "English": '{"answer": "<LETTER>"}',
+    "Italian": '{"risposta": "<LETTERA>"}',
+    "Friulian": '{"rispueste": "<LETARE>"}',
+    "Venetian": '{"risposta": "<LETERA>"}',
+    "Lombard": '{"rispòsta": "<LETRA>"}',
+    "Sicilian": '{"risposta": "<LITTRA>"}',
+    "Ligurian": '{"responsa": "<LETTIA>"}',
 }
 
 
@@ -451,7 +457,7 @@ ANSWER_PREFILLS: dict[str, str] = {
     "Italian": '{"risposta": "',
     "Friulian": '{"rispueste": "',
     "Venetian": '{"risposta": "',
-    "Lombard": '{"risposta": "',
+    "Lombard": '{"rispòsta": "',
     "Sicilian": '{"risposta": "',
     "Ligurian": '{"responsa": "',
 }
@@ -484,13 +490,13 @@ SUBJECT_SYSTEM_TEMPLATES: dict[str, str] = {
 
 
 JSON_INSTRUCTION_TEMPLATES: dict[str, str] = {
-    "English": 'Answer with a JSON object with the following schema: {{"answer": "<letter>"}}.',
-    "Italian": 'Rispondi con un oggetto JSON con il seguente schema: {{"risposta": "<lettera>"}}.',
-    "Friulian": 'Rispuindi cuntun ogjet JSON cul seguitîf scheme: {{"rispueste": "<letare>"}}.',
-    "Venetian": 'Rispondi co un ogeto JSON co el seguente schema: {{"risposta": "<letera>"}}.',
-    "Lombard": 'Risposta cunt un uget JSON cunt el schéma seguent: {{"risposta": "<letra>"}}.',
-    "Sicilian": 'Rispunni cu n\'uggettu JSON cû schema siquenti: {{"risposta": "<littra>"}}.',
-    "Ligurian": 'Responde con un oggetto JSON co-o schema seguente: {{"responsa": "<lettia>"}}.',
+    "English": 'Each question has four options (A, B, C, D). Respond only with a JSON object in this exact format: {"answer": "LETTER"}, where LETTER is the correct choice from A, B, C, or D. Do not include any explanations or additional text.',  # noqa: E501
+    "Italian": 'Ogni domanda ha quattro opzioni (A, B, C, D). Rispondi solo con un oggetto JSON in questo formato esatto: {"risposta": "LETTERA"}, dove la LETTERA è la scelta corretta tra A, B, C o D. Non includere spiegazioni o testo aggiuntivo.',  # noqa: E501
+    "Friulian": 'Ogni domande e à cuatri opzions (A, B, C, D). Rispuindi dome cuntun ogjet JSON in chest formât precîs: {"rispueste": "LETARE"}, dulà che la LETARE e je la sielte corete di A, B, C o D. No cjapâ dentri nissun spiegazion o test adizionâl.',  # noqa: E501
+    "Venetian": 'Ogni domanda ła ga quatro opsion (A, B, C, D). Rispondi soło co un ojeto JSON in sto formato esato: {"risposta": "ŁETARA"}, indove ła ŁETARA ła xe ła sielta giusta da A, B, C o D. No métar spiegasión o testo adisionałe.',  # noqa: E501
+    "Lombard": 'Ogni dumanda g\'ha quater upziun (A, B, C, D). Respund sultant cunt un uget JSON en chestu furmat esatt: {"rispòsta": "LETRA"}, induè la LETRA l\'è la scernida giüsta intra A, B, C o D. Includi no spiegaziun o test giontif.',  # noqa: E501
+    "Sicilian": 'Ogni dumanna havi quattru pussibbilità (A, B, C, D). Rispunni sulu cu n\'uggettu JSON nna stu furmatu esattu: {"risposta": "LITTRA"}, unni la LITTRA è la scelta giusta di A, B, C o D. Nun nchiùdiri spiegazzioni o testu aggiuntivu.',  # noqa: E501
+    "Ligurian": 'Ògni domanda a l\'à quattro poscibilitæ (A, B, C, D). Responde solo con un oggetto JSON inte sto formato esatto: {"responsa": "LETTIA"}, donde a LETTIA a l\'é a corretta çernia tra A, B, C ò D. No comprende nisciuña spiegaçion ò testo in ciù.',  # noqa: E501
 }
 
 
