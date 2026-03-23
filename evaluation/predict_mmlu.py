@@ -14,28 +14,15 @@ from mmlu_utils import (
     get_one_letter_instruction,
     get_subject_system_message,
 )
+from model_utils import DEFAULT_MODELS, get_llm_additional_config, get_system_message, model_to_filename
 from vllm import LLM, SamplingParams
 from vllm.tokenizers import get_tokenizer
 
 
 CHOICES = ["A", "B", "C", "D"]
 
-DEFAULT_MODELS = [
-    "Fastweb/FastwebMIIA-7B",
-    "sapienzanlp/Minerva-7B-instruct-v1.0",
-    "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA",
-    "utter-project/EuroLLM-9B-Instruct-2512",
-    "Qwen/Qwen3-8B",
-    "swiss-ai/Apertus-8B-Instruct-2509",
-    # "Qwen/Qwen3.5-9B" (open bug on github)
-]
-
 PROMPT_MODES = ["json", "fewshot"]
 TOP_K_TOKENS = 20
-
-
-def _model_to_filename(model_id):
-    return model_id.replace("/", "__")
 
 
 def _get_choice_variant_token_ids(tokenizer, choice):
@@ -63,23 +50,6 @@ def _aggregate_choice_logprob(step_logprobs, token_ids):
         return float("-inf")
 
     return torch.logsumexp(torch.as_tensor(variant_logprobs), dim=0).item()
-
-
-def get_system_message(model_id):
-    if model_id == "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA":
-        return (
-            "Sei un an assistente AI per la lingua Italiana di nome LLaMAntino-3 ANITA "
-            "(Advanced Natural-based interaction for the ITAlian language)."
-            " Rispondi nella lingua usata per la domanda in modo chiaro, semplice ed esaustivo."
-        )
-
-    if model_id == "utter-project/EuroLLM-9B-Instruct-2512":
-        return (
-            "You are EuroLLM --- an AI assistant specialized in European languages "
-            "that provides safe, educational and helpful answers."
-        )
-
-    return None
 
 
 def parse_args():
@@ -111,11 +81,7 @@ def _create_json_messages(sys_msg, question, answers, subject, lang="English"):
     messages.append(
         {
             "role": "system",
-            "content": get_subject_system_message(subject, lang)
-            + "\n"
-            + get_one_letter_instruction(lang)
-            + "\n"
-            + get_json_instruction(lang),
+            "content": get_subject_system_message(subject, lang) + "\n" + get_json_instruction(lang),
         }
     )
     messages.append({"role": "user", "content": user_prompt})
@@ -124,7 +90,7 @@ def _create_json_messages(sys_msg, question, answers, subject, lang="English"):
     return messages
 
 
-def _create_fewshot_messages(
+def _create_fewshot_messages(  # noqa: PLR0913
     sys_msg,
     question,
     answers,
@@ -164,7 +130,7 @@ def _create_fewshot_messages(
     return messages
 
 
-def make_predict_batch(
+def make_predict_batch(  # noqa: PLR0913
     llm: LLM,
     model_id: str,
     token_id_map: dict,
@@ -257,7 +223,12 @@ def main():
         seed=42,
     )
 
-    llm = LLM(model_id, enable_sleep_mode=True, max_logprobs=2000)
+    llm = LLM(
+        model_id,
+        max_logprobs=2000,
+        language_model_only=True,
+        additional_config=get_llm_additional_config(model_id),
+    )
 
     tokenizer = get_tokenizer(model_id)
     token_id_map = {choice: _get_choice_variant_token_ids(tokenizer, choice) for choice in CHOICES}
@@ -281,7 +252,7 @@ def main():
 
     output_file = args.output_file
     if output_file is None:
-        output_file = str(Path(args.output_dir) / f"{_model_to_filename(model_id)}.parquet")
+        output_file = str(Path(args.output_dir) / f"{model_to_filename(model_id)}.parquet")
 
     Path(output_file).parent.mkdir(parents=True, exist_ok=True)
     dataset.to_parquet(output_file)

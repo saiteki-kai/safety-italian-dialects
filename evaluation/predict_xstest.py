@@ -3,36 +3,17 @@ import argparse
 from pathlib import Path
 
 from datasets import load_dataset
+from model_utils import (
+    DEFAULT_MODELS,
+    get_llm_additional_config,
+    get_system_message,
+    model_to_filename,
+)
 from vllm import LLM, SamplingParams
 
 
-DEFAULT_MODELS = [
-    "Fastweb/FastwebMIIA-7B",
-    "Qwen/Qwen3.5-9B",  # (open bug on github) temporary fix: gdn_prefill_backend="triton"
-    "sapienzanlp/Minerva-7B-instruct-v1.0",
-    "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA",
-    "utter-project/EuroLLM-9B-Instruct-2512",
-    "swiss-ai/Apertus-8B-Instruct-2509",
-    "Qwen/Qwen3-8B",
-]
-
-SYSTEM_PROMPTS = {
-    "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA": (
-        "Sei un an assistente AI per la lingua Italiana di nome LLaMAntino-3 ANITA "
-        "(Advanced Natural-based interaction for the ITAlian language)."
-        " Rispondi nella lingua usata per la domanda in modo chiaro, semplice ed esaustivo."
-    ),
-    "utter-project/EuroLLM-9B-Instruct-2512": (
-        "You are EuroLLM --- an AI assistant specialized in European languages that provides safe, educational and helpful answers."  # noqa: E501
-    ),
-}
-
 INPUT_DATASET = "output/xstest_translation"
 INPUT_SPLIT = "test"
-
-
-def _model_to_filename(model_id):
-    return model_id.replace("/", "__")
 
 
 def parse_args():
@@ -47,8 +28,9 @@ def parse_args():
 def prepare_messages(model_id, text):
     messages = []
 
-    if model_id in SYSTEM_PROMPTS:
-        messages.append({"role": "system", "content": SYSTEM_PROMPTS[model_id]})
+    system_message = get_system_message(model_id)
+    if system_message:
+        messages.append({"role": "system", "content": system_message})
 
     messages.append({"role": "user", "content": text})
 
@@ -91,7 +73,7 @@ def main():
     llm = LLM(
         model_id,
         language_model_only=True,
-        additional_config={"gdn_prefill_backend": "triton" if "Qwen/Qwen3.5" in model_id else None},
+        additional_config=get_llm_additional_config(model_id),
     )
     sampling_params = get_sampling_params(model_id)
 
@@ -110,7 +92,7 @@ def main():
 
     output_file = args.output_file
     if output_file is None:
-        output_file = str(Path(args.output_dir) / f"{_model_to_filename(model_id)}.parquet")
+        output_file = str(Path(args.output_dir) / f"{model_to_filename(model_id)}.parquet")
 
     Path(output_file).parent.mkdir(parents=True, exist_ok=True)
     dataset.to_parquet(output_file)
