@@ -58,6 +58,7 @@ def parse_args():
     parser.add_argument("--model", choices=DEFAULT_MODELS, required=True)
     parser.add_argument("--output-dir", default="output/mmlu_predictions/by_model")
     parser.add_argument("--output-file", default=None)
+    parser.add_argument("--version", choices=["v1", "v2"], default="v1")
     return parser.parse_args()
 
 
@@ -73,7 +74,7 @@ def _get_fixed_fewshot_examples(fewshot_dataset, lang, subject):
     return fewshot_dataset.filter(lambda e: e["lang"] == lang and e["subset"] == subject)
 
 
-def _create_json_messages(sys_msg, question, answers, subject, lang="English"):
+def _create_json_messages(sys_msg, question, answers, subject, lang="English", version: str = "v1"):  # noqa: PLR0913
     assistant_prefill = get_answer_prefill(lang)
     user_prompt = _format_question_choices_prompt(question, answers)
 
@@ -81,7 +82,7 @@ def _create_json_messages(sys_msg, question, answers, subject, lang="English"):
     messages.append(
         {
             "role": "system",
-            "content": get_subject_system_message(subject, lang) + "\n" + get_json_instruction(lang),
+            "content": get_subject_system_message(subject, lang) + "\n" + get_json_instruction(lang, version=version),
         }
     )
     messages.append({"role": "user", "content": user_prompt})
@@ -236,7 +237,7 @@ def main():
     message_builder = (
         partial(_create_fewshot_messages, fewshot_dataset=fewshot_dataset)
         if args.prompt_mode == "fewshot"
-        else _create_json_messages
+        else partial(_create_json_messages, version=args.version)
     )
     predict_batch = make_predict_batch(
         llm,
