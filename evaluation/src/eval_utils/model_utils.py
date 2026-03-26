@@ -1,3 +1,5 @@
+QWEN35_IDENTIFIER = "Qwen/Qwen3.5"
+
 DEFAULT_MODELS = [
     "Fastweb/FastwebMIIA-7B",
     "Qwen/Qwen3.5-9B",  # (open bug on github) temporary fix: gdn_prefill_backend="triton"
@@ -30,4 +32,14 @@ def get_system_message(model_id: str) -> str | None:
 
 
 def get_additional_config(model_id: str) -> dict[str, str | None]:
-    return {"gdn_prefill_backend": "triton" if "Qwen/Qwen3.5" in model_id else None}
+    # Temporary workaround for Qwen 3.5 prefill behavior.
+    return {"gdn_prefill_backend": "triton" if QWEN35_IDENTIFIER in model_id else None}
+
+
+__all__ = [
+    "DEFAULT_MODELS",
+    "SYSTEM_PROMPTS",
+    "get_additional_config",
+    "get_system_message",
+    "model_to_filename",
+]

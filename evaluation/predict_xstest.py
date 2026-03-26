@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 
 from datasets import load_dataset
-from model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
+from src.eval_utils.model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
 from vllm import LLM, SamplingParams
 
 

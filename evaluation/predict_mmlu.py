@@ -6,8 +6,8 @@ from typing import Any, cast
 import torch
 
 from datasets import concatenate_datasets, load_dataset
-from model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
-from prompt import BasePromptBuilder, PromptBuilderFactory
+from src.eval_utils.model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
+from src.eval_utils.prompt import BasePromptBuilder, PromptBuilderFactory
 from vllm import LLM, SamplingParams
 
 

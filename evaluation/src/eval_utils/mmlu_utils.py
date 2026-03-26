@@ -414,6 +414,8 @@ SUBJECT_TRANSLATIONS: dict[str, dict[str, str]] = {
     },
 }
 
+SUPPORTED_LANGUAGES = list(SUBJECT_TRANSLATIONS.keys())
+
 
 def get_translated_subject(subject: str, lang: str) -> str:
     if lang not in SUBJECT_TRANSLATIONS:
@@ -426,3 +428,9 @@ def get_translated_subject(subject: str, lang: str) -> str:
         raise ValueError(f"Unsupported subject: {subject}")
 
     return SUBJECT_TRANSLATIONS[lang][subject].lower()
+
+
+__all__ = [
+    "SUPPORTED_LANGUAGES",
+    "get_translated_subject",
+]

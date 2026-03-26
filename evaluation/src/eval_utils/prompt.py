@@ -1,33 +1,45 @@
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 
-class BasePromptBuilder:
+PromptConfig = dict[str, Any]
+FewShotExample = dict[str, Any]
+ChatMessage = dict[str, str]
+
+
+class BasePromptBuilder(ABC):
     def __init__(self, config: dict[str, Any]):
         self.config = config
-        self.fewshots: list[dict[str, Any]] = []
+        self.fewshots: list[FewShotExample] = []
         self.is_chat: bool = False
 
+    @abstractmethod
     def build(self, **kwargs: Any) -> str | list[dict[str, str]]:
         raise NotImplementedError
 
-    def build_few_shot(self, shots: list[dict[str, Any]], **kwargs: Any) -> str | list[dict[str, str]]:
+    @abstractmethod
+    def build_few_shot(
+        self,
+        shots: list[FewShotExample],
+        **kwargs: Any,
+    ) -> str | list[dict[str, str]]:
         raise NotImplementedError
 
 
 class CompletionPromptBuilder(BasePromptBuilder):
-    def __init__(self, config: dict[str, Any]):
+    def __init__(self, config: PromptConfig):
         super().__init__(config)
 
         instruction = self.config.get("instruction")
         template = self.config.get("template")
 
-        if instruction is None:
+        if not isinstance(instruction, str) or not instruction:
             raise ValueError("Missing or invalid 'instruction' in prompt config")
 
-        if template is None:
+        if not isinstance(template, str) or not template:
             raise ValueError("Missing or invalid 'template' in prompt config")
 
         self.instruction = instruction
@@ -37,7 +49,7 @@ class CompletionPromptBuilder(BasePromptBuilder):
         content = self.template.format(**kwargs)
         return f"{self.instruction}\n\n{content}"
 
-    def build_few_shot(self, shots: list[dict[str, Any]], **kwargs: Any) -> str:
+    def build_few_shot(self, shots: list[FewShotExample], **kwargs: Any) -> str:
         shot_texts: list[str] = []
         for shot in shots:
             shot_data = dict(shot)
@@ -53,7 +65,7 @@ class CompletionPromptBuilder(BasePromptBuilder):
 
 
 class ChatPromptBuilder(BasePromptBuilder):
-    def __init__(self, config: dict[str, Any], system_message: str | None = None):
+    def __init__(self, config: PromptConfig, system_message: str | None = None):
         super().__init__(config)
         self.is_chat = True
         self.system_message = system_message
@@ -80,7 +92,7 @@ class ChatPromptBuilder(BasePromptBuilder):
         self.assistant_prefill = assistant_prefill
         self.assistant_template = assistant_template
 
-    def build(self, **kwargs: Any) -> list[dict[str, str]]:
+    def build(self, **kwargs: Any) -> list[ChatMessage]:
         user_content = self.user_template.format(**kwargs)
 
         messages = []
@@ -89,8 +101,8 @@ class ChatPromptBuilder(BasePromptBuilder):
 
         return messages
 
-    def _build_system_messages(self, sys_msg: str | None) -> list[dict[str, str]]:
-        messages = []
+    def _build_system_messages(self, sys_msg: str | None) -> list[ChatMessage]:
+        messages: list[ChatMessage] = []
         if sys_msg:
             messages.append({"role": "system", "content": sys_msg})
 
@@ -103,7 +115,7 @@ class ChatPromptBuilder(BasePromptBuilder):
         self,
         user_content: str,
         assistant_content: str | None = None,
-    ) -> list[dict[str, str]]:
+    ) -> list[ChatMessage]:
         if assistant_content is not None:
             return [
                 {"role": "user", "content": user_content},
@@ -112,8 +124,8 @@ class ChatPromptBuilder(BasePromptBuilder):
 
         return [{"role": "user", "content": user_content}]
 
-    def build_few_shot(self, shots: list[dict[str, Any]], **kwargs: Any) -> list[dict[str, str]]:
-        messages = []
+    def build_few_shot(self, shots: list[FewShotExample], **kwargs: Any) -> list[ChatMessage]:
+        messages: list[ChatMessage] = []
         messages.extend(self._build_system_messages(self.system_message))
 
         for shot in shots:
@@ -135,7 +147,7 @@ class ChatPromptBuilder(BasePromptBuilder):
 
 class PromptBuilderFactory:
     @staticmethod
-    def from_yaml(path: Path, language: str, **kwargs) -> BasePromptBuilder:
+    def from_yaml(path: Path, language: str, **kwargs: Any) -> BasePromptBuilder:
         with path.open("r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
@@ -154,3 +166,11 @@ class PromptBuilderFactory:
             return ChatPromptBuilder(localized_config, **kwargs)
 
         return CompletionPromptBuilder(localized_config)
+
+
+__all__ = [
+    "BasePromptBuilder",
+    "ChatPromptBuilder",
+    "CompletionPromptBuilder",
+    "PromptBuilderFactory",
+]
