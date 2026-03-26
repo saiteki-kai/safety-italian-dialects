@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 
 from datasets import load_dataset
-from src.eval_utils.model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
+from src.eval_utils.model_utils import get_additional_config, get_system_message, model_to_filename
 from vllm import LLM, SamplingParams
 
 
@@ -13,7 +13,7 @@ INPUT_SPLIT = "test"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=DEFAULT_MODELS, required=True)
+    parser.add_argument("--model-name-or-path", required=True)
     parser.add_argument("--output-dir", default="output/responses/by_model")
     parser.add_argument("--output-file", default=None)
     return parser.parse_args()
@@ -61,7 +61,7 @@ def get_sampling_params(model_id):
 
 def main():
     args = parse_args()
-    model_id = args.model
+    model_id = args.model_name_or_path
 
     original_dataset = load_dataset(INPUT_DATASET, split=INPUT_SPLIT)
 

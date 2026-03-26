@@ -6,7 +6,7 @@ from typing import Any, cast
 import torch
 
 from datasets import concatenate_datasets, load_dataset
-from src.eval_utils.model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
+from src.eval_utils.model_utils import get_additional_config, get_system_message, model_to_filename
 from src.eval_utils.prompt import BasePromptBuilder, PromptBuilderFactory
 from vllm import LLM, SamplingParams
 
@@ -25,8 +25,16 @@ TOP_K_TOKENS = 20
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="MMLU prediction runner with different prompt templates.")
-    parser.add_argument("--model", choices=DEFAULT_MODELS, required=True)
-    parser.add_argument("--config", required=True, help="Config file for prompt template")
+    parser.add_argument(
+        "--model-name-or-path",
+        required=True,
+        help="Model identifier from Hugging Face Hub or local path to the model.",
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Config file for prompt template. Should be a YAML file with language-specific templates.",
+    )
     return parser.parse_args()
 
 
@@ -173,8 +181,11 @@ def row_to_prompt(
 def main() -> None:
     args = parse_args()
 
-    model_id = args.model
+    model_id = args.model_name_or_path
     config_path = Path(args.config)
+
+    if not model_id.startswith("/") and not Path(model_id).exists():
+        raise ValueError(f"Local model path does not exist: {model_id}")
 
     test_dataset = load_dataset(DATASET_NAME, split=TEST_SPLIT)
     few_shots = load_fewshots_dict(load_dataset(DATASET_NAME, split=DEV_SPLIT))
