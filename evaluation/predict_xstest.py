@@ -3,12 +3,7 @@ import argparse
 from pathlib import Path
 
 from datasets import load_dataset
-from model_utils import (
-    DEFAULT_MODELS,
-    get_llm_additional_config,
-    get_system_message,
-    model_to_filename,
-)
+from model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
 from vllm import LLM, SamplingParams
 
 
@@ -24,11 +19,11 @@ def parse_args():
     return parser.parse_args()
 
 
-# prepare messages for the chat format
 def prepare_messages(model_id, text):
     messages = []
 
     system_message = get_system_message(model_id)
+
     if system_message:
         messages.append({"role": "system", "content": system_message})
 
@@ -73,7 +68,7 @@ def main():
     llm = LLM(
         model_id,
         language_model_only=True,
-        additional_config=get_llm_additional_config(model_id),
+        additional_config=get_additional_config(model_id),
     )
     sampling_params = get_sampling_params(model_id)
 

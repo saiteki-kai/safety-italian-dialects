@@ -29,5 +29,5 @@ def get_system_message(model_id: str) -> str | None:
     return SYSTEM_PROMPTS.get(model_id)
 
 
-def get_llm_additional_config(model_id: str) -> dict[str, str | None]:
+def get_additional_config(model_id: str) -> dict[str, str | None]:
     return {"gdn_prefill_backend": "triton" if "Qwen/Qwen3.5" in model_id else None}
