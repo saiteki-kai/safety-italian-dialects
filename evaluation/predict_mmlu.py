@@ -1,38 +1,55 @@
 import argparse
 
-from collections.abc import Callable
-from functools import partial
 from pathlib import Path
+from typing import Any, cast
 
 import torch
 
-from datasets import load_dataset
-from mmlu_utils import (
-    get_answer_prefill,
-    get_answer_prefix,
-    get_json_instruction,
-    get_one_letter_instruction,
-    get_subject_system_message,
-)
-from model_utils import DEFAULT_MODELS, get_llm_additional_config, get_system_message, model_to_filename
+from datasets import concatenate_datasets, load_dataset
+from model_utils import DEFAULT_MODELS, get_additional_config, get_system_message, model_to_filename
+from prompt import BasePromptBuilder, PromptBuilderFactory
 from vllm import LLM, SamplingParams
-from vllm.tokenizers import get_tokenizer
 
+
+DATASET_NAME = "saiteki-kai/mmlu-redux-dialects"
+TEST_SPLIT = "test"
+OUTPUT_DIR = Path("output/mmlu_predictions/by_model")
 
 CHOICES = ["A", "B", "C", "D"]
+SUPPORTED_LANGUAGES = ["English", "Italian", "Friulian", "Venetian", "Lombard", "Sicilian", "Ligurian"]
 
-PROMPT_MODES = ["json", "fewshot"]
+SAMPLING_PARAMS = SamplingParams(temperature=0.0, max_tokens=1, logprobs=2000, seed=42)
 TOP_K_TOKENS = 20
 
 
-def _get_choice_variant_token_ids(tokenizer, choice):
-    variant_token_ids = []
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="MMLU prediction runner with different prompt templates.")
+    parser.add_argument("--model", choices=DEFAULT_MODELS, required=True)
+    parser.add_argument("--config", required=True, help="Config file for prompt template")
+    return parser.parse_args()
+
+
+def _format_choices(answers: list[str]) -> str:
+    if len(answers) != len(CHOICES):
+        msg = f"Expected {len(CHOICES)} answer choices, got {len(answers)}."
+        raise ValueError(msg)
+
+    return "\n".join(f"{choice}. {answer}" for choice, answer in zip(CHOICES, answers, strict=True))
+
+
+def _get_choice_variant_token_ids(tokenizer: Any, choice: str) -> list[int]:
+    variant_token_ids: list[int] = []
 
     for variant in [choice, f" {choice}"]:
         token_ids = tokenizer(variant, add_special_tokens=False).input_ids
 
-        if token_ids[-1] not in variant_token_ids:
-            variant_token_ids.append(token_ids[-1])
+        if len(token_ids) != 1:
+            continue
+
+        token_id = token_ids[0]
+
+        if token_id not in variant_token_ids:
+            variant_token_ids.append(token_id)
 
     if not variant_token_ids:
         msg = f"Could not find any single-token variants for choice {choice!r}."
@@ -41,7 +58,7 @@ def _get_choice_variant_token_ids(tokenizer, choice):
     return variant_token_ids
 
 
-def _aggregate_choice_logprob(step_logprobs, token_ids):
+def _aggregate_choice_logprob(step_logprobs: dict[int, Any], token_ids: list[int]) -> float:
     variant_logprobs = [
         token_info.logprob for token_id in token_ids if (token_info := step_logprobs.get(token_id)) is not None
     ]
@@ -49,214 +66,115 @@ def _aggregate_choice_logprob(step_logprobs, token_ids):
     if not variant_logprobs:
         return float("-inf")
 
-    return torch.logsumexp(torch.as_tensor(variant_logprobs), dim=0).item()
+    return cast(float, torch.logsumexp(torch.as_tensor(variant_logprobs), dim=0).item())
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--prompt-mode", choices=PROMPT_MODES, default="json")
-    parser.add_argument("--model", choices=DEFAULT_MODELS, required=True)
-    parser.add_argument("--output-dir", default="output/mmlu_predictions/by_model")
-    parser.add_argument("--output-file", default=None)
-    parser.add_argument("--version", choices=["v1", "v2"], default="v1")
-    return parser.parse_args()
+def _extract_top_tokens(step_logprobs: dict[int, Any], tokenizer: Any) -> tuple[list[str], list[float]]:
+    sorted_logprobs = sorted(step_logprobs.items(), key=lambda item: item[1].logprob, reverse=True)
+    top_k = sorted_logprobs[:TOP_K_TOKENS]
+
+    current_tokens: list[str] = []
+    current_token_logprobs: list[float] = []
+    for token_id, token_info in top_k:
+        decoded_token = getattr(token_info, "decoded_token", None)
+        if decoded_token is None:
+            decoded_token = tokenizer.decode([token_id])
+
+        current_tokens.append(decoded_token)
+        current_token_logprobs.append(token_info.logprob)
+
+    return current_tokens, current_token_logprobs
 
 
-def _format_choices(answers):
-    return "\n".join(f"{choice}. {answer}" for choice, answer in zip(CHOICES, answers, strict=True))
+def _build_predictions(outputs: Any, token_id_map: dict[str, list[int]], tokenizer: Any) -> dict[str, Any]:
+    probs = []
+    predictions = []
+    top_tokens = []
+    top_token_logprobs = []
+
+    for output in outputs:
+        if not output.outputs:
+            raise ValueError("Model output is missing generated candidates.")
+
+        first_output = output.outputs[0]
+        logprobs = first_output.logprobs
+
+        if logprobs is None:
+            raise ValueError("Logprobs are not available. Set sampling logprobs > 0.")
+
+        if not logprobs:
+            raise ValueError("Model output is missing step logprobs.")
+
+        step_logprobs = logprobs[0]
+        choice_logprobs = [_aggregate_choice_logprob(step_logprobs, token_id_map[choice]) for choice in CHOICES]
+        current_tokens, current_token_logprobs = _extract_top_tokens(step_logprobs, tokenizer)
+
+        probs.append(choice_logprobs)
+        predictions.append(first_output.text)
+        top_tokens.append(current_tokens)
+        top_token_logprobs.append(current_token_logprobs)
+
+    probs_tensor = torch.softmax(torch.as_tensor(probs), dim=-1)
+
+    return {
+        "probs": probs_tensor.tolist(),
+        "prediction": predictions,
+        "top_tokens": top_tokens,
+        "top_token_logprobs": top_token_logprobs,
+    }
 
 
-def _format_question_choices_prompt(question, answers):
-    return f"{question}\n{_format_choices(answers)}"
-
-
-def _get_fixed_fewshot_examples(fewshot_dataset, lang, subject):
-    return fewshot_dataset.filter(lambda e: e["lang"] == lang and e["subset"] == subject)
-
-
-def _create_json_messages(sys_msg, question, answers, subject, lang="English", version: str = "v1"):  # noqa: PLR0913
-    assistant_prefill = get_answer_prefill(lang)
-    user_prompt = _format_question_choices_prompt(question, answers)
-
-    messages = [{"role": "system", "content": sys_msg}] if sys_msg else []
-    messages.append(
-        {
-            "role": "system",
-            "content": get_subject_system_message(subject, lang) + "\n" + get_json_instruction(lang, version=version),
-        }
+def row_to_prompt(prompt_builder: BasePromptBuilder, row: dict[str, Any]) -> dict[str, str | list[dict[str, str]]]:
+    payload = prompt_builder.build(
+        subject=row["subset"],
+        question=row["question"],
+        choices=_format_choices(row["choices"]),
     )
-    messages.append({"role": "user", "content": user_prompt})
-    messages.append({"role": "assistant", "content": assistant_prefill})
 
-    return messages
+    return {"messages": payload} if isinstance(payload, list) else {"prompt": payload}
 
 
-def _create_fewshot_messages(  # noqa: PLR0913
-    sys_msg,
-    question,
-    answers,
-    subject,
-    lang="English",
-    fewshot_dataset=None,
-):
-    messages = [{"role": "system", "content": sys_msg}] if sys_msg else []
-    messages.append(
-        {
-            "role": "system",
-            "content": get_subject_system_message(subject, lang) + "\n" + get_one_letter_instruction(lang),
-        }
-    )
-    answer_prefix = get_answer_prefix(lang)
+def main() -> None:
+    args = parse_args()
 
-    shots = _get_fixed_fewshot_examples(fewshot_dataset, lang, subject)
+    model_id = args.model
+    config_path = Path(args.config)
 
-    for shot in shots:
-        shot_user_prompt = _format_question_choices_prompt(shot["question"], shot["choices"])
-        shot_answer = CHOICES[shot["answer"]]
+    test_dataset = load_dataset(DATASET_NAME, split=TEST_SPLIT)
 
-        messages.extend(
-            [
-                {"role": "user", "content": shot_user_prompt},
-                {"role": "assistant", "content": f"{answer_prefix}{shot_answer}"},
-            ]
-        )
+    llm = LLM(model_id, max_logprobs=2000, language_model_only=True, additional_config=get_additional_config(model_id))
+    token_id_map = {choice: _get_choice_variant_token_ids(llm.get_tokenizer(), choice) for choice in CHOICES}
+    sys_msg = get_system_message(model_id)
 
-    user_prompt = _format_question_choices_prompt(question, answers)
-    messages.extend(
-        [
-            {"role": "user", "content": user_prompt},
-            {"role": "assistant", "content": answer_prefix},
-        ]
-    )
-    return messages
-
-
-def make_predict_batch(  # noqa: PLR0913
-    llm: LLM,
-    model_id: str,
-    token_id_map: dict,
-    sampling_params: SamplingParams,
-    message_builder: Callable[[str | None, str, list[str], str, str], list[dict[str, str]]],
-    tokenizer,
-):
-    def predict_batch(batch):
-        sys_msg = get_system_message(model_id)
-
-        messages = [
-            message_builder(sys_msg, question, answers, subject, lang)
-            for question, answers, subject, lang in zip(
-                batch["question"],
-                batch["choices"],
-                batch["subset"],
-                batch["lang"],
-                strict=True,
-            )
-        ]
-
+    def predict_batch(batch: dict[str, Any]) -> dict[str, Any]:
         outputs = llm.chat(
-            messages,
-            sampling_params=sampling_params,
+            batch["messages"],
+            sampling_params=SAMPLING_PARAMS,
             chat_template_kwargs={"enable_thinking": False},
             add_generation_prompt=False,
             continue_final_message=True,
             use_tqdm=False,
         )
 
-        probs = []
-        predictions = []
-        top_tokens = []
-        top_token_logprobs = []
-        for output in outputs:
-            logprobs = output.outputs[0].logprobs
+        return _build_predictions(outputs, token_id_map, llm.get_tokenizer())
 
-            if logprobs is None:
-                msg = (
-                    "Logprobs are not available. Please make sure to set `logprobs` "
-                    "in `sampling_params` to a value greater than 0."
-                )
-                raise ValueError(msg)
+    mapped_datasets = []
 
-            step_logprobs = logprobs[0]
-            choice_logprobs = [_aggregate_choice_logprob(step_logprobs, token_id_map[choice]) for choice in CHOICES]
-            sorted_logprobs = sorted(step_logprobs.items(), key=lambda item: item[1].logprob, reverse=True)
-            top_k = sorted_logprobs[:TOP_K_TOKENS]
+    for language in SUPPORTED_LANGUAGES:
+        prompt_builder = PromptBuilderFactory.from_yaml(config_path, language, system_message=sys_msg)
 
-            current_tokens = []
-            current_token_logprobs = []
-            for token_id, token_info in top_k:
-                decoded_token = getattr(token_info, "decoded_token", None)
-                if decoded_token is None:
-                    decoded_token = tokenizer.decode([token_id])
+        dataset_lang = test_dataset.filter(lambda e, language=language: e["lang"] == language)
+        dataset_lang = dataset_lang.map(lambda row, prompt_builder=prompt_builder: row_to_prompt(prompt_builder, row))
+        dataset_lang = dataset_lang.map(predict_batch, batched=True, batch_size=1)
 
-                current_tokens.append(decoded_token)
-                current_token_logprobs.append(token_info.logprob)
+        mapped_datasets.append(dataset_lang)
 
-            probs.append(choice_logprobs)
-            predictions.append(output.outputs[0].text)
-            top_tokens.append(current_tokens)
-            top_token_logprobs.append(current_token_logprobs)
-
-        probs = torch.as_tensor(probs)
-        probs = torch.softmax(probs, dim=-1)
-
-        return {
-            "probs": probs.tolist(),
-            "prediction": predictions,
-            "top_tokens": top_tokens,
-            "top_token_logprobs": top_token_logprobs,
-        }
-
-    return predict_batch
-
-
-def main():
-    args = parse_args()
-    model_id = args.model
-
-    original_dataset = load_dataset("saiteki-kai/mmlu-redux-dialects", split="test")
-    fewshot_dataset = load_dataset("saiteki-kai/mmlu-redux-dialects", split="validation")
-
-    sampling_params = SamplingParams(
-        temperature=0.0,
-        max_tokens=1,
-        logprobs=2000,
-        # structured_outputs=StructuredOutputsParams(choice=CHOICES),
-        seed=42,
-    )
-
-    llm = LLM(
-        model_id,
-        max_logprobs=2000,
-        language_model_only=True,
-        additional_config=get_llm_additional_config(model_id),
-    )
-
-    tokenizer = get_tokenizer(model_id)
-    token_id_map = {choice: _get_choice_variant_token_ids(tokenizer, choice) for choice in CHOICES}
-
-    message_builder = (
-        partial(_create_fewshot_messages, fewshot_dataset=fewshot_dataset)
-        if args.prompt_mode == "fewshot"
-        else partial(_create_json_messages, version=args.version)
-    )
-    predict_batch = make_predict_batch(
-        llm,
-        model_id,
-        token_id_map,
-        sampling_params,
-        message_builder=message_builder,
-        tokenizer=tokenizer,
-    )
-
-    dataset = original_dataset.map(predict_batch, batched=True, batch_size=1)
+    dataset = concatenate_datasets(mapped_datasets)
     dataset = dataset.add_column("model", [model_id] * len(dataset))
 
-    output_file = args.output_file
-    if output_file is None:
-        output_file = str(Path(args.output_dir) / f"{model_to_filename(model_id)}.parquet")
-
-    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
-    dataset.to_parquet(output_file)
+    output_file = OUTPUT_DIR / f"{model_to_filename(model_id)}.parquet"
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    dataset.to_parquet(str(output_file))
 
 
 if __name__ == "__main__":
