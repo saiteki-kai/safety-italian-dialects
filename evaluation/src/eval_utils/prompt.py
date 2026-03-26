@@ -47,7 +47,7 @@ class CompletionPromptBuilder(BasePromptBuilder):
 
     def build(self, **kwargs: Any) -> str:
         content = self.template.format(**kwargs)
-        return f"{self.instruction}\n\n{content}"
+        return f"{self.instruction.format(**kwargs)}\n\n{content}"
 
     def build_few_shot(self, shots: list[FewShotExample], **kwargs: Any) -> str:
         shot_texts: list[str] = []
@@ -58,10 +58,10 @@ class CompletionPromptBuilder(BasePromptBuilder):
 
             answer = str(shot_data.pop("answer"))
             shot_content = self.template.format(**shot_data)
-            shot_texts.append(f"{self.instruction}\n\n{shot_content}{answer}")
+            shot_texts.append(f"{shot_content}{answer}")
 
         current_content = self.template.format(**kwargs)
-        return "\n\n".join([self.instruction, *shot_texts, current_content])
+        return "\n\n".join([self.instruction.format(**kwargs), *shot_texts, current_content])
 
 
 class ChatPromptBuilder(BasePromptBuilder):
