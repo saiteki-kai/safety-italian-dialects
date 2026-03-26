@@ -13,6 +13,7 @@ from vllm import LLM, SamplingParams
 
 DATASET_NAME = "saiteki-kai/mmlu-redux-dialects"
 TEST_SPLIT = "test"
+DEV_SPLIT = "validation"
 OUTPUT_DIR = Path("output/mmlu_predictions/by_model")
 
 CHOICES = ["A", "B", "C", "D"]
@@ -124,12 +125,47 @@ def _build_predictions(outputs: Any, token_id_map: dict[str, list[int]], tokeniz
     }
 
 
-def row_to_prompt(prompt_builder: BasePromptBuilder, row: dict[str, Any]) -> dict[str, str | list[dict[str, str]]]:
-    payload = prompt_builder.build(
-        subject=row["subset"],
-        question=row["question"],
-        choices=_format_choices(row["choices"]),
-    )
+def load_fewshots_dict(dataset) -> dict[tuple[str, str], list[dict[str, str]]]:
+    fewshots_dict = {}
+
+    for example in dataset:
+        lang = example["lang"]
+        subset = example["subset"]
+
+        if (lang, subset) not in fewshots_dict:
+            fewshots_dict[(lang, subset)] = []
+
+        fewshot_example = {
+            "question": example["question"],
+            "choices": _format_choices(example["choices"]),
+            "answer": CHOICES[example["answer"]],
+        }
+        fewshots_dict[(lang, subset)].append(fewshot_example)
+
+    return fewshots_dict
+
+
+def row_to_prompt(
+    prompt_builder: BasePromptBuilder,
+    row: dict[str, Any],
+    few_shots_dict: dict[tuple[str, str], list[dict[str, str]]] | None = None,
+    use_fewshot: bool = False,
+) -> dict[str, str | list[dict[str, str]]]:
+    if use_fewshot and few_shots_dict is not None:
+        few_shots = few_shots_dict.get((row["lang"], row["subset"]), [])
+
+        payload = prompt_builder.build_few_shot(
+            shots=few_shots,
+            subject=row["subset"],
+            question=row["question"],
+            choices=_format_choices(row["choices"]),
+        )
+    else:
+        payload = prompt_builder.build(
+            subject=row["subset"],
+            question=row["question"],
+            choices=_format_choices(row["choices"]),
+        )
 
     return {"messages": payload} if isinstance(payload, list) else {"prompt": payload}
 
@@ -141,20 +177,24 @@ def main() -> None:
     config_path = Path(args.config)
 
     test_dataset = load_dataset(DATASET_NAME, split=TEST_SPLIT)
+    few_shots = load_fewshots_dict(load_dataset(DATASET_NAME, split=DEV_SPLIT))
 
     llm = LLM(model_id, max_logprobs=2000, language_model_only=True, additional_config=get_additional_config(model_id))
     token_id_map = {choice: _get_choice_variant_token_ids(llm.get_tokenizer(), choice) for choice in CHOICES}
     sys_msg = get_system_message(model_id)
 
     def predict_batch(batch: dict[str, Any]) -> dict[str, Any]:
-        outputs = llm.chat(
-            batch["messages"],
-            sampling_params=SAMPLING_PARAMS,
-            chat_template_kwargs={"enable_thinking": False},
-            add_generation_prompt=False,
-            continue_final_message=True,
-            use_tqdm=False,
-        )
+        if "messages" not in batch:
+            outputs = llm.generate(batch["prompt"], sampling_params=SAMPLING_PARAMS, use_tqdm=False)
+        else:
+            outputs = llm.chat(
+                batch["messages"],
+                sampling_params=SAMPLING_PARAMS,
+                chat_template_kwargs={"enable_thinking": False},
+                add_generation_prompt=False,
+                continue_final_message=True,
+                use_tqdm=False,
+            )
 
         return _build_predictions(outputs, token_id_map, llm.get_tokenizer())
 
@@ -164,8 +204,16 @@ def main() -> None:
         prompt_builder = PromptBuilderFactory.from_yaml(config_path, language, system_message=sys_msg)
 
         dataset_lang = test_dataset.filter(lambda e, language=language: e["lang"] == language)
-        dataset_lang = dataset_lang.map(lambda row, prompt_builder=prompt_builder: row_to_prompt(prompt_builder, row))
-        dataset_lang = dataset_lang.map(predict_batch, batched=True, batch_size=1)
+        dataset_lang = dataset_lang.map(
+            lambda row, prompt_builder=prompt_builder: row_to_prompt(
+                prompt_builder,
+                row,
+                few_shots_dict=few_shots,
+                use_fewshot=True,
+            ),
+        )
+        col = "messages" if prompt_builder.is_chat else "prompt"
+        dataset_lang = dataset_lang.map(predict_batch, batched=True, batch_size=1, remove_columns=[col])
 
         mapped_datasets.append(dataset_lang)
 
