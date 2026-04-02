@@ -1,0 +1,62 @@
+English:
+  system_instruction: |-
+    The following are multiple choice questions (with answers) about {subject}.
+    Answer with one letter only: A, B, C, or D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Answer: "
+  assistant_template: "Answer: {answer}"
+
+Italian:
+  system_instruction: |-
+    Di seguito sono riportate domande a risposta multipla (con risposte) su {subject}.
+    Rispondi con una sola lettera: A, B, C o D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Risposta: "
+  assistant_template: "Risposta: {answer}"
+
+Friulian:
+  system_instruction: |-
+    Di seguit a son domandis a sielte multiple (cun rispuestis) su {subject}.
+    Rispuindi cuntune letare dome: A, B, C o D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Rispueste: "
+  assistant_template: "Rispueste: {answer}"
+
+Venetian:
+  system_instruction: |-
+    Qua soto ghe xe domande a risposta (co risposte) su {subject}.
+    Rispondi co na soła letara: A, B, C o D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Risposta: "
+  assistant_template: "Risposta: {answer}"
+
+Lombard:
+  system_instruction: |-
+    Di seguit sun dumandi a scernida multipla (cun rispost) sü {subject}.
+    Rispund cun sultant una letra: A, B, C o D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Rispòsta: "
+  assistant_template: "Rispòsta: {answer}"
+
+Sicilian:
+  system_instruction: |-
+    Di seguitu ci sunnu dumanni a scelta multipla (cû risposti) supra {subject}.
+    Rispunni cu na littra sulu: A, B, C, o D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Risposta: "
+  assistant_template: "Risposta: {answer}"
+
+Ligurian:
+  system_instruction: |-
+    De sotta gh'é de domande à çernia multipla (con de respòste) in sce {subject}.
+    Responde con unna sola lettia: A, B, C ò D.
+  user_template: |-
+    {user_input}
+  assistant_prefill: "Responsa: "
+  assistant_template: "Responsa: {answer}"

@@ -25,7 +25,7 @@ SYSTEM_PROMPTS = {
 
 def model_to_filename(model_name_or_path: str) -> str:
     if model_name_or_path.startswith("/"):
-        model_name_or_path = "Local/" + model_name_or_path[1:]
+        model_name_or_path = "local__" + model_name_or_path[1:]
 
     return model_name_or_path.replace("/", "__")
 

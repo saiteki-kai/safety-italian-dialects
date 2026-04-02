@@ -1,0 +1,69 @@
+English:
+  system_instruction: |-
+    The following are multiple choice questions (with answers) about {subject}.
+    Please show your choice in the answer field with only the choice letter, e.g., "answer": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"answer": "'
+  assistant_template: '{"answer": "{answer}"}'
+
+Italian:
+  system_instruction: |-
+    Di seguito sono riportate domande a risposta multipla (con risposte) su {subject}.
+    Per favore mostra la tua scelta nel campo della risposta solo con la lettera scelta, ad esempio "risposta": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"risposta": "'
+  assistant_template: '{"risposta": "{answer}"}'
+
+Friulian:
+  system_instruction: |-
+    Di seguit a son domandis a sielte multiple (cun rispuestis) su {subject}.
+    Par plasê mostrâ la tô sielte tal cjamp di rispueste cun dome la letare di sielte, par esempli, "rispueste": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"rispueste": "'
+  assistant_template: '{"rispueste": "{answer}"}'
+
+Venetian:
+  system_instruction: |-
+    Qua soto ghe xe domande a risposta (co risposte) su {subject}.
+    Par piaser, mostra ła vostra sielta nel canpo de risposta co soło ła letara de sielta, par exénpio, "risposta": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"risposta": "'
+  assistant_template: '{"risposta": "{answer}"}'
+
+Lombard:
+  system_instruction: |-
+    Di seguit sun dumandi a scernida multipla (cun rispost) sü {subject}.
+    Per piasé mustra la tò scernida in del camp de la rispòsta cun sultant la letra de scernida, par esempi, "rispòsta": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"rispòsta": "'
+  assistant_template: '{"rispòsta": "{answer}"}'
+
+Sicilian:
+  system_instruction: |-
+    Di seguitu ci sunnu dumanni a scelta multipla (cû risposti) supra {subject}.
+    Mustra a vostra scelta nnô campu dâ risposta sulu câ littra dâ scelta, p'asempiu, "risposta": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"risposta": "'
+  assistant_template: '{"risposta": "{answer}"}'
+
+Ligurian:
+  system_instruction: |-
+    De sotta gh'é de domande à çernia multipla (con de respòste) in sce {subject}.
+    Pe favô, mostra a vòstra çernia into campo da respòsta solo che co-a lettia de çernia, prexempio, "respòsta": "X".
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"responsa": "'
+  assistant_template: '{"responsa": "{answer}"}'

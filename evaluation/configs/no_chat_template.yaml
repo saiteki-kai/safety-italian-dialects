@@ -1,0 +1,76 @@
+English:
+  instruction: |-
+    The following are multiple choice questions (with answers) about {subject}.
+    Answer with one letter only: A, B, C, or D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Answer:
+
+Italian:
+  instruction: |-
+    Di seguito sono riportate domande a risposta multipla (con risposte) su {subject}.
+    Rispondi con una sola lettera: A, B, C o D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Risposta:
+
+Friulian:
+  instruction: |-
+    Di seguit a son domandis a sielte multiple (cun rispuestis) su {subject}.
+    Rispuindi cuntune letare dome: A, B, C o D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Rispueste:
+
+Venetian:
+  instruction: |-
+    Qua soto ghe xe domande a risposta (co risposte) su {subject}.
+    Rispondi co na soła letara: A, B, C o D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Risposta:
+
+Lombard:
+  instruction: |-
+    Di seguit sun dumandi a scernida multipla (cun rispost) sü {subject}.
+    Rispund cun sultant una letra: A, B, C o D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Rispòsta:
+
+Sicilian:
+  instruction: |-
+    Di seguitu ci sunnu dumanni a scelta multipla (cû risposti) supra {subject}.
+    Rispunni cu na littra sulu: A, B, C, o D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Risposta:
+
+Ligurian:
+  instruction: |-
+    De sotta gh'é de domande à çernia multipla (con de respòste) in sce {subject}.
+    Responde con unna sola lettia: A, B, C ò D.
+  template: |-
+    {question}
+
+    {choices}
+
+    Responsa:

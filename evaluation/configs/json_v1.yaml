@@ -1,0 +1,69 @@
+English:
+  system_instruction: |-
+    The following are multiple choice questions (with answers) about {subject}.
+    Each question has four options labeled A, B, C, and D. Provide only a JSON object in the format {"answer": "X"}, where X is the uppercase letter corresponding to the correct option. Do not return any explanations or additional text.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"answer": "'
+  assistant_template: '{"answer": "{answer}"}'
+
+Italian:
+  system_instruction: |-
+    Di seguito sono riportate domande a risposta multipla (con risposte) su {subject}.
+    Ogni domanda presenta quattro opzioni etichettate A, B, C e D. Fornire esclusivamente un oggetto JSON nel formato {"risposta": "X"}, dove X è la lettera maiuscola corrispondente all'opzione corretta. Non restituire spiegazioni o testo aggiuntivo.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"risposta": "'
+  assistant_template: '{"risposta": "{answer}"}'
+
+Friulian:
+  system_instruction: |-
+    Di seguit a son domandis a sielte multiple (cun rispuestis) su {subject}.
+    Ogni domande e à cuatri opzions etichetadis A, B, C e D. Furni dome un ogjet JSON intal formât {"rispueste": "X"}, dulà che X e je la letare maiuscule corispondent ae opzion corete. No tornâ nissun test o test adizionâl.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"rispueste": "'
+  assistant_template: '{"rispueste": "{answer}"}'
+
+Venetian:
+  system_instruction: |-
+    Qua soto ghe xe domande a risposta (co risposte) su {subject}.
+    Ogni domanda ła ga quatro opsion etichetàe A, B, C e D. Fornìr soło un ojeto JSON nel formato {"risposta": "X"}, indove che X ła xe ła maiuscoła che corisponde a l'opsion coreta. No restituìr spiegasión o testo adisionałi.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"risposta": "'
+  assistant_template: '{"risposta": "{answer}"}'
+
+Lombard:
+  system_instruction: |-
+    Di seguit sun dumandi a scernida multipla (cun rispost) sü {subset}.
+    Ogni dumanda g’ha quater upziun etichettà A, B, C e D. Furniss sultant un uget JSON in del furmat {"rispòsta": "X"}, induè X l’è la letra maiuscula curispundent a l’upziun giüsta. Restituiss no spiegaziun o test giontif.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"rispòsta": "'
+  assistant_template: '{"rispòsta": "{answer}"}'
+
+Sicilian:
+  system_instruction: |-
+    Di seguitu ci sunnu dumanni a scelta multipla (cû risposti) supra {subject}.
+    Ogni dumanna àvi quattru opzzioni marcati A, B, C e D. Furnisci sulu n'uggettu JSON nnô furmatu {"risposta": "X"}, unni X è la littra maiuscula ca currispunni a l'opzzioni giusta. Nun riturnari nuḍḍa spiegazzioni o testu aggiuntivu.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"risposta": "'
+  assistant_template: '{"risposta": "{answer}"}'
+
+Ligurian:
+  system_instruction: |-
+    De sotta gh'é de domande à çernia multipla (con de respòste) in sce {subject}.
+    Ògni domanda a l'à quattro opçioin marcæ A, B, C e D. Fornî solo che un oggetto JSON into formato {"responsa": "X"}, donde X a l'é a lettia maiuscola ch'a corresponde à l'opçion corretta. No restituî nisciuña spiegaçion ò testo in ciù.
+  user_template: |-
+    {question}
+    {choices}
+  assistant_prefill: '{"responsa": "'
+  assistant_template: '{"responsa": "{answer}"}'

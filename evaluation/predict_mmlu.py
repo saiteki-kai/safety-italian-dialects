@@ -184,9 +184,6 @@ def main() -> None:
     model_id = args.model_name_or_path
     config_path = Path(args.config)
 
-    if not model_id.startswith("/") and not Path(model_id).exists():
-        raise ValueError(f"Local model path does not exist: {model_id}")
-
     test_dataset = load_dataset(DATASET_NAME, split=TEST_SPLIT)
     few_shots = load_fewshots_dict(load_dataset(DATASET_NAME, split=DEV_SPLIT))
 
@@ -223,8 +220,8 @@ def main() -> None:
                 use_fewshot=True,
             ),
         )
-        col = "messages" if prompt_builder.is_chat else "prompt"
-        dataset_lang = dataset_lang.map(predict_batch, batched=True, batch_size=1, remove_columns=[col])
+        dataset_lang = dataset_lang.map(predict_batch, batched=True, batch_size=1)
+        dataset_lang = dataset_lang.remove_columns(["messages" if prompt_builder.is_chat else "prompt"])
 
         mapped_datasets.append(dataset_lang)
 

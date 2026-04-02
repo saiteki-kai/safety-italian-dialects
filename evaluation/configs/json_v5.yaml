@@ -1,0 +1,146 @@
+English:
+  system_instruction: |-
+    You are an expert in question answering. Given a question and a set of options labeled A, B, C, D. Provide the correct answer.
+  user_template: |-
+    Answer the following question carefully about {subject}:
+
+    {question}
+
+    Options:
+    {choices}
+
+    Instructions:
+    - Read the question and all the options carefully.
+    - Select the correct answer.
+    - Reply ONLY with a valid JSON object in this exact format: '{{"label": "<LABEL>", "text": "<TEXT>"}}', where <LABEL> is a letter between A, B, C, D, and <TEXT> is the exact text of the chosen option.
+    - Do not include explanations or additional text.
+
+    Your answer:
+  assistant_prefill: '{"label": "'
+  assistant_template: '{"label": "{answer}"}'
+
+Italian:
+  system_instruction: |-
+    Sei un esperto nella risposta alle domande. Data una domanda e una serie di opzioni etichettate A, B, C, D. Fornisci la risposta corretta.
+  user_template: |-
+    Rispondi accuratamente alla seguente domanda su {subject}:
+
+    {question}
+
+    Opzioni:
+    {choices}
+
+    Istruzioni:
+    - Leggi attentamente la domanda e tutte le opzioni.
+    - Seleziona la risposta corretta.
+    - Rispondi SOLO con un oggetto JSON valido in questo formato esatto: '{{"etichetta": "<ETICHETTA>", "testo": "<TESTO>"}}', dove <ETICHETTA> è una lettera tra A, B, C, D, e <TESTO> è il testo esatto dell'opzione scelta.
+    - Non includere spiegazioni o testo aggiuntivo.
+
+    La tua risposta:
+  assistant_prefill: '{"etichetta": "'
+  assistant_template: '{"etichetta": "{answer}"}'
+
+Friulian:
+  system_instruction: |-
+    Tu sês un esperts inte rispueste aes domandis. Date une domande e un insiemi di opzions etichetadis A, B, C, D. Furni la rispueste corete.
+  user_template: |-
+    Rispuindi cun atenzion ae domande seguitive su {subject}:
+
+    {question}
+
+    Opzions:
+    {choices}
+
+    Istruzions:
+    - Leî ben la domande e dutis lis opzions.
+    - Selezionâ la rispueste corete.
+    - Rispuindi SOLO cuntun ogjet JSON valit in chest formât precîs: '{{"etichete": "<ETICHETE>", "test": "<TEST>"}}', dulà che <ETICHETE> e je une letare jenfri A, B, C, D, e <TEST> al è il test precîs de opzion sielte.
+    - No cjapâ dentri spiegazions o tescj adizionâi.
+
+    La tô rispueste:
+  assistant_prefill: '{"etichete": "'
+  assistant_template: '{"etichete": "{answer}"}'
+
+Venetian:
+  system_instruction: |-
+    Te si un esperto neła risposta ałe domande. Data na domanda e un insieme de opsion ciamae A, B, C, D. Da ła risposta giusta.
+  user_template: |-
+    Rispondi ben a sta domanda su {subject}:
+
+    {question}
+
+    Opsion:
+    {choices}
+
+    Istruzioni:
+    - Leghe ben la domanda e tute le opsion.
+    -Seleziona la risposta giusta.
+    - Rispondi SOLO co un ogeto JSON valido in sto formato esatto: '{{"targeta": "<TARGETA>", "testo": "<TESTO>"}}', dove <TARGETA> xe na letera fra A, B, C, D, e <TESTO> xe el testo esatto de l'opsion scelta.
+    - No includer spiegazioni o testo complementare.
+
+    La tua risposta xe:
+  assistant_prefill: '{"targeta": "'
+  assistant_template: '{"targeta": "{answer}"}'
+
+Lombard:
+  system_instruction: |-
+    L’è un espert in de la risposta a la dumanda. Dat una dumanda e un insema de upziun etichettà A, B, C, D. Furniss la rispòsta giüsta.
+  user_template: |-
+    Rispund cun atenziun a la dumanda sü {subject}:
+
+    {question}
+
+    Opziun:
+    {choices}
+
+    Istruziun:
+    - Legg ben la dumanda e tüt i opziun.
+    - Seleziuna la rispòsta giüsta.
+    - Rispund SOLTANT cunt un uget JSON valid en chestu furmat esatt: '{{"etichetta": "<ETICHETTA>", "test": "<TEST>"}}', induè <ETICHETTA> l'è una letra intra A, B, C, D, e <TEST> l'è el test esatt del opziun scernida.
+    - Includer no spiegaziun o test adiziunal.
+
+    La tò rispòsta:
+  assistant_prefill: '{"etichetta": "'
+  assistant_template: '{"etichetta": "{answer}"}'
+
+Sicilian:
+  system_instruction: |-
+    Tu si' n'espertu di dumanni e risposti. Datu na dumanna e na serie d'opzioni etichettati A, B, C, D. Fornite a risposta curretta.
+  user_template: |-
+    Rispunni attentamenti â dumanna appressu supra {subject}:
+
+    {question}
+
+    Opzzioni:
+    {choices}
+
+    Istruzzioni:
+    - Leggi attentamenti la dumanna e tutti l'opzzioni.
+    - Scegghi la risposta giusta.
+    - Rispunni SULU cu n'uggettu JSON validu nna stu furmatu esattu: '{{"tichetta": "<TICHETTA>", "testu": "<TESTU>"}}', unni <TICHETTA> è na littra ntra A, B, C, D, e <TESTU> è lu testu esattu di l'upzzioni scigghiuta.
+    - Nun nclùdiri spiegazzioni o testi aggiuntivi.
+
+    La tò risposta:
+  assistant_prefill: '{"tichetta": "'
+  assistant_template: '{"tichetta": "{answer}"}'
+
+Ligurian:
+  system_instruction: |-
+    Sei un esperto inta domanda de respòsta. Dæto unna domanda e un insemme d’opçioin marcæ A, B, C, D. Fornî a respòsta corretta.
+  user_template: |-
+    Responde con attençion a-a domanda chì apreuvo in sce {subject}:
+
+    {question}
+
+    Opçioin:
+    {choices}
+
+    Istruçioin:
+    - Leze con attençion a domanda e tutte e opçioin.
+    - Seleçionâ a respòsta corretta.
+    - Responde SOLO con un oggetto JSON valido inte sto formato esatto: '{{"etichetta": "<ETICHETTA>", "testo": "<TESTO>"}}', dove <ETICHETTA> a l'é unna lettia tra A, B, C, D, e <TESTO> o l'é o testo esatto de l'opçion stæta çernua.
+    - No comprende de spiegaçioin ò di testi in ciù.
+
+    A vòstra respòsta:
+  assistant_prefill: '{"etichetta": "'
+  assistant_template: '{"etichetta": "{answer}"}'
