@@ -31,6 +31,11 @@ def parse_args() -> argparse.Namespace:
         help="Model identifier from Hugging Face Hub or local path to the model.",
     )
     parser.add_argument(
+        "--use-fewshot",
+        action="store_true",
+        help="Whether to use few-shot examples in the prompt.",
+    )
+    parser.add_argument(
         "--config",
         required=True,
         help="Config file for prompt template. Should be a YAML file with language-specific templates.",
@@ -217,15 +222,15 @@ def main() -> None:
                 prompt_builder,
                 row,
                 few_shots_dict=few_shots,
-                use_fewshot=True,
+                use_fewshot=args.use_fewshot,
             ),
         )
         dataset_lang = dataset_lang.map(predict_batch, batched=True, batch_size=1)
-        dataset_lang = dataset_lang.remove_columns(["messages" if prompt_builder.is_chat else "prompt"])
 
         mapped_datasets.append(dataset_lang)
 
     dataset = concatenate_datasets(mapped_datasets)
+    dataset = dataset.remove_columns(["messages" if prompt_builder.is_chat else "prompt"])
     dataset = dataset.add_column("model", [model_id] * len(dataset))
 
     output_file = OUTPUT_DIR / f"{model_to_filename(model_id)}.parquet"
