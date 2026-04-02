@@ -3,8 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-PROMPT_MODE="${1:-json}"
-
 MODELS=(
   "Fastweb/FastwebMIIA-7B"
   "Qwen/Qwen3.5-9B"
@@ -17,7 +15,7 @@ MODELS=(
 
 for model in "${MODELS[@]}"; do
   echo "Running model: ${model}"
-  python "${SCRIPT_DIR}/predict_mmlu.py" --prompt-mode "${PROMPT_MODE}" --model "${model}"
+  python "${SCRIPT_DIR}/predict_mmlu.py" --config "configs/json_v1.yaml" --model "${model}"
 done
 
 python "${SCRIPT_DIR}/combine_predictions.py" \
