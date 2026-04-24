@@ -37,9 +37,13 @@ reccommended_generation_configs = {
     "sapienzanlp/Minerva-7B-instruct-v1.0": SamplingParams(temperature=0.4, repetition_penalty=1.1),
     "swap-uniba/LLaMAntino-3-ANITA-8B-Inst-DPO-ITA": SamplingParams(temperature=0.6, top_p=0.9),
     "utter-project/EuroLLM-9B-Instruct-2512": SamplingParams(temperature=1.0),
+    "utter-project/EuroLLM-22B-Instruct-2512": SamplingParams(temperature=1.0),
     "swiss-ai/Apertus-8B-Instruct-2509": SamplingParams(temperature=0.8, top_p=0.9),
+    "swiss-ai/Apertus-70B-Instruct-2509": SamplingParams(temperature=0.8, top_p=0.9),
     "Qwen/Qwen3-8B": SamplingParams(temperature=0.7, top_p=0.8, top_k=20, min_p=0.0, presence_penalty=1.5),
     "Qwen/Qwen3.5-9B": SamplingParams(temperature=0.7, top_p=0.8, top_k=20, min_p=0.0, presence_penalty=1.5),
+    "Qwen/Qwen3.5-27B": SamplingParams(temperature=0.7, top_p=0.8, top_k=20, min_p=0.0, presence_penalty=1.5),
+    "Almawave/Velvet-14B": SamplingParams(temperature=1.0),
 }
 
 
